@@ -36,7 +36,7 @@ const iconGeometry = new THREE.SphereGeometry(0.1, 16, 16); // Small sphere
 const iconMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
 const placementIcon = new THREE.Mesh(iconGeometry, iconMaterial);
 scene.add(placementIcon);
-placementIcon.position.set(0, 0, -1); // Place slightly in front of the camera
+placementIcon.position.set(0, 0, -4444); // Place slightly in front of the camera
 
 // Enable object placement using raycasting
 const raycaster = new THREE.Raycaster();
