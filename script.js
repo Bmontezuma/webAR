@@ -1,12 +1,13 @@
+import { ARButton } from 'https://cdn.jsdelivr.net/npm/three/examples/jsm/webxr/ARButton.js';
+
 // Basic Three.js setup
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.xr.enabled = true; // Enable WebXR
 document.body.appendChild(renderer.domElement);
-
-// Set camera position
-camera.position.z = 5; // Move the camera back to view the model
+document.body.appendChild(ARButton.createButton(renderer)); // Add AR button for AR mode
 
 // Load the Mario Super Mushroom model
 const loader = new THREE.GLTFLoader();
@@ -14,13 +15,11 @@ let model; // Declare globally to allow cloning
 loader.load(
     './assets/mario_super_mushroom.glb',
     function (gltf) {
-        model = gltf.scene; // Store the loaded model
+        model = gltf.scene;
         scene.add(model);
-
-        // Position the model
-        model.position.set(0, 0, -2); // Adjust the position as needed
+        model.visible = false; // Hide the default model until placement
     },
-    undefined, // Optional: Progress callback
+    undefined,
     function (error) {
         console.error('An error occurred while loading the model:', error);
     }
@@ -31,46 +30,62 @@ const light = new THREE.DirectionalLight(0xffffff, 1);
 light.position.set(6, 5, 5).normalize();
 scene.add(light);
 
-// Add placement icon
-const iconGeometry = new THREE.SphereGeometry(0.1, 16, 16); // Small sphere
-const iconMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-const placementIcon = new THREE.Mesh(iconGeometry, iconMaterial);
-scene.add(placementIcon);
-placementIcon.position.set(0, 0, -3); // Place slightly in front of the camera
-placementIcon.renderOrder = 1; // Ensure it renders on top
+// Array to store placed objects
+const placedObjects = [];
 
-// Enable object placement using raycasting
-const raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2();
-const placedObjects = []; // Store placed objects
+// Real-world placement with AR hit-test
+let hitTestSource = null;
+let localSpace = null;
 
-window.addEventListener('click', (event) => {
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+// Session start for AR
+renderer.xr.addEventListener('sessionstart', async () => {
+    const session = renderer.xr.getSession();
 
-    raycaster.setFromCamera(mouse, camera);
+    // Set up hit testing
+    const viewerSpace = await session.requestReferenceSpace('viewer');
+    hitTestSource = await session.requestHitTestSource({ space: viewerSpace });
+    localSpace = await session.requestReferenceSpace('local');
+});
 
-    const intersects = raycaster.intersectObject(placementIcon);
-    if (intersects.length > 0 && model) {
-        // Clone the model and place it at the icon's position
-        const newModel = model.clone();
-        newModel.position.copy(placementIcon.position);
-        scene.add(newModel);
-        placedObjects.push(newModel); // Keep track of placed objects
-
-        // Move the icon further back after placing the model
-        placementIcon.position.z -= 1;
-
-        console.log("Object placed at:", newModel.position);
-    }
+// Session end cleanup
+renderer.xr.addEventListener('sessionend', () => {
+    hitTestSource = null;
+    localSpace = null;
 });
 
 // Animation loop
 function animate() {
-    // Ensure the icon always stays slightly in front of the camera
-    placementIcon.position.z = camera.position.z - 1;
-    requestAnimationFrame(animate);
-    renderer.render(scene, camera);
+    renderer.setAnimationLoop(() => {
+        if (hitTestSource) {
+            const frame = renderer.xr.getFrame();
+            const hitTestResults = frame.getHitTestResults(hitTestSource);
+
+            if (hitTestResults.length > 0) {
+                const hit = hitTestResults[0];
+                const pose = hit.getPose(localSpace);
+
+                // Update placement icon to follow hit-test results
+                if (model) {
+                    model.visible = true;
+                    model.position.set(pose.transform.position.x, pose.transform.position.y, pose.transform.position.z);
+                }
+            }
+        }
+
+        renderer.render(scene, camera);
+    });
 }
+
 animate();
+
+// Tap to place objects
+window.addEventListener('click', () => {
+    if (model && model.visible) {
+        const newModel = model.clone();
+        scene.add(newModel);
+        placedObjects.push(newModel);
+
+        console.log('Object placed at:', newModel.position);
+    }
+});
 
