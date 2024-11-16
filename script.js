@@ -37,6 +37,7 @@ const iconMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
 const placementIcon = new THREE.Mesh(iconGeometry, iconMaterial);
 scene.add(placementIcon);
 placementIcon.position.set(0, 0, -3); // Place slightly in front of the camera
+placementIcon.renderOrder = 1; // Ensure it renders on top
 
 // Enable object placement using raycasting
 const raycaster = new THREE.Raycaster();
@@ -51,16 +52,23 @@ window.addEventListener('click', (event) => {
 
     const intersects = raycaster.intersectObject(placementIcon);
     if (intersects.length > 0 && model) {
+        // Clone the model and place it at the icon's position
         const newModel = model.clone();
         newModel.position.copy(placementIcon.position);
         scene.add(newModel);
         placedObjects.push(newModel); // Keep track of placed objects
+
+        // Move the icon further back after placing the model
+        placementIcon.position.z -= 1;
+
         console.log("Object placed at:", newModel.position);
     }
 });
 
 // Animation loop
 function animate() {
+    // Ensure the icon always stays slightly in front of the camera
+    placementIcon.position.z = camera.position.z - 1;
     requestAnimationFrame(animate);
     renderer.render(scene, camera);
 }
