@@ -13,7 +13,7 @@ document.body.appendChild(ARButton.createButton(renderer)); // Add AR button for
 const loader = new THREE.GLTFLoader();
 let model; // Declare globally to allow cloning
 loader.load(
-    './assets/mario_super_mushroom.glb',
+    './assets/neon_game_controller.glb',
     function (gltf) {
         model = gltf.scene;
         scene.add(model);
