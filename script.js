@@ -10,11 +10,11 @@ camera.position.z = 5; // Move the camera back to view the model
 
 // Load the Mario Super Mushroom model
 const loader = new THREE.GLTFLoader();
+let model; // Declare globally to allow cloning
 loader.load(
     './assets/mario_super_mushroom.glb',
     function (gltf) {
-        // Add the loaded model to the scene
-        const model = gltf.scene;
+        model = gltf.scene; // Store the loaded model
         scene.add(model);
 
         // Position the model
@@ -28,12 +28,36 @@ loader.load(
 
 // Add light to the scene
 const light = new THREE.DirectionalLight(0xffffff, 1);
-light.position.set(6, 5, 5).normalize(); // Position the light
+light.position.set(6, 5, 5).normalize();
 scene.add(light);
 
-// Optional: Add a grid helper for reference
-const gridHelper = new THREE.GridHelper(10, 10);
-scene.add(gridHelper);
+// Add placement icon
+const iconGeometry = new THREE.SphereGeometry(0.1, 16, 16); // Small sphere
+const iconMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+const placementIcon = new THREE.Mesh(iconGeometry, iconMaterial);
+scene.add(placementIcon);
+placementIcon.position.set(0, 0, -1); // Place slightly in front of the camera
+
+// Enable object placement using raycasting
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+const placedObjects = []; // Store placed objects
+
+window.addEventListener('click', (event) => {
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, camera);
+
+    const intersects = raycaster.intersectObject(placementIcon);
+    if (intersects.length > 0 && model) {
+        const newModel = model.clone();
+        newModel.position.copy(placementIcon.position);
+        scene.add(newModel);
+        placedObjects.push(newModel); // Keep track of placed objects
+        console.log("Object placed at:", newModel.position);
+    }
+});
 
 // Animation loop
 function animate() {
