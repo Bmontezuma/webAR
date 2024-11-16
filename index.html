@@ -1,39 +1,54 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-    <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">      
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebXR AR Experience</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <title>WebXR AR Experience</title>
 
-    <!-- Link to the CSS file -->
-    <link rel="stylesheet" href="style.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
 
-    <!-- Include Three.js library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- three.js -->
+  <script src="https://unpkg.com/three@0.126.0/build/three.js"></script>
+  <script src="https://unpkg.com/three@0.126.0/examples/js/loaders/GLTFLoader.js"></script>
 
-    <!-- Include GLTFLoader -->
-    <script src="https://cdn.jsdelivr.net/npm/three/examples/js/loaders/GLTFLoader.js"></script>
+  <!-- Custom Styles -->
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Creepster', cursive;
+      background-color: #000;
+      color: #fff;
+      text-align: center;
+    }
 
-    <!-- Include AR Button -->
-    <script src="https://cdn.jsdelivr.net/npm/@webxr/ar-button@1.0.0"></script>
+    #startButton {
+      position: absolute;
+      top: 20%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 15px 30px;
+      font-size: 24px;
+      color: #fff;
+      background-color: #007BFF;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    #startButton:hover {
+      transform: scale(1.1);
+    }
+
+    canvas {
+      display: block;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <h1>WebXR AR Experience</h1>
-        <p>Explore AR directly from your browser!</p>
-    </header>
-
-    <main>
-        <!-- The 3D scene will be rendered here -->
-    </main>
-
-    <footer>
-        <p>© 2024 Brandon Montezuma | WebXR AR Experience</p>
-    </footer>
-
-    <!-- Link to the JavaScript file -->
-    <script type="module" src="script.js"></script>
+  <button id="startButton">Start AR Experience</button>
+  <script type="module" src="script.js"></script>
 </body>
 </html>
 

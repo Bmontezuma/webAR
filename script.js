@@ -1,121 +1,118 @@
-import { ARButton } from 'https://cdn.jsdelivr.net/npm/three/examples/jsm/webxr/ARButton.js';
+import * as THREE from "https://unpkg.com/three@0.126.0/build/three.module.js";
+import { GLTFLoader } from "https://unpkg.com/three@0.126.0/examples/jsm/loaders/GLTFLoader.js";
 
-// Basic Three.js setup
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.xr.enabled = true; // Enable WebXR
-document.body.appendChild(renderer.domElement);
-document.body.appendChild(ARButton.createButton(renderer)); // Add AR button for AR mode
+let scene, camera, renderer, reticle, helmetModel, hitTestSource, referenceSpace;
 
-// Load the Mario Super Mushroom model
-const loader = new THREE.GLTFLoader();
-let model; // Declare globally to allow cloning
-loader.load(
-    './assets/neon_game_controller.glb',
-    function (gltf) {
-        model = gltf.scene;
-        model.visible = false; // Hide the default model until placement
-        scene.add(model);
-    },
-    undefined,
-    function (error) {
-        console.error('An error occurred while loading the model:', error.message);
-    }
-);
-
-// Add lights to the scene
-const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-directionalLight.position.set(6, 5, 5).normalize();
-scene.add(directionalLight);
-
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-scene.add(ambientLight);
-
-// Array to store placed objects
-const placedObjects = [];
-
-// Real-world placement with AR hit-test
-let hitTestSource = null;
-let localSpace = null;
-
-// Session start for AR
-renderer.xr.addEventListener('sessionstart', async () => {
-    const session = renderer.xr.getSession();
-
-    // Set up hit testing
-    const viewerSpace = await session.requestReferenceSpace('viewer');
-    hitTestSource = await session.requestHitTestSource({ space: viewerSpace });
-    localSpace = await session.requestReferenceSpace('local');
+// Start AR on button click
+document.getElementById("startButton").addEventListener("click", async () => {
+  document.getElementById("startButton").style.display = "none";
+  await activateXR();
 });
 
-// Session end cleanup
-renderer.xr.addEventListener('sessionend', () => {
-    hitTestSource = null;
-    localSpace = null;
-});
+async function activateXR() {
+  // Add a canvas for WebGL and initialize THREE.js
+  const canvas = document.createElement("canvas");
+  document.body.appendChild(canvas);
+  const gl = canvas.getContext("webgl", { xrCompatible: true });
 
-// Animation loop
-function animate() {
-    renderer.setAnimationLoop(() => {
-        if (hitTestSource) {
-            const frame = renderer.xr.getFrame();
-            const hitTestResults = frame.getHitTestResults(hitTestSource);
+  renderer = new THREE.WebGLRenderer({ alpha: true, preserveDrawingBuffer: true, canvas, context: gl });
+  renderer.autoClear = false;
 
-            if (hitTestResults.length > 0) {
-                const hit = hitTestResults[0];
-                const pose = hit.getPose(localSpace);
+  // Create the scene and add lighting
+  scene = new THREE.Scene();
 
-                // Update placement icon to follow hit-test results
-                if (model) {
-                    model.visible = true;
-                    model.position.set(
-                        pose.transform.position.x,
-                        pose.transform.position.y,
-                        pose.transform.position.z
-                    );
-                }
-            } else if (model) {
-                model.visible = false; // Hide model if no hit-test results
-            }
-        }
+  // Add directional light
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+  directionalLight.position.set(10, 15, 10);
+  scene.add(directionalLight);
 
-        renderer.render(scene, camera);
-    });
+  // Add ambient light for overall brightness
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+  scene.add(ambientLight);
+
+  // Add hemisphere light for natural light effect
+  const hemisphereLight = new THREE.HemisphereLight(0xaaaaaa, 0x444444, 0.5);
+  hemisphereLight.position.set(0, 20, 0);
+  scene.add(hemisphereLight);
+
+  // Set up the camera
+  camera = new THREE.PerspectiveCamera();
+  camera.matrixAutoUpdate = false;
+
+  // Initialize WebXR session
+  const session = await navigator.xr.requestSession("immersive-ar", { requiredFeatures: ["hit-test"] });
+  session.updateRenderState({
+    baseLayer: new XRWebGLLayer(session, gl)
+  });
+
+  // Reference spaces
+  referenceSpace = await session.requestReferenceSpace("local");
+  const viewerSpace = await session.requestReferenceSpace("viewer");
+
+  // Create hit-test source
+  hitTestSource = await session.requestHitTestSource({ space: viewerSpace });
+
+  // Add reticle for AR interaction
+  const loader = new GLTFLoader();
+  loader.load("https://immersive-web.github.io/webxr-samples/media/gltf/reticle/reticle.gltf", (gltf) => {
+    reticle = gltf.scene;
+    reticle.visible = false;
+    scene.add(reticle);
+  });
+
+  // Load the Damaged Helmet model
+  loader.load("https://github.com/KhronosGroup/glTF-Sample-Models/raw/master/2.0/DamagedHelmet/glTF-Binary/DamagedHelmet.glb", (gltf) => {
+    helmetModel = gltf.scene;
+  });
+
+  session.addEventListener("select", onSelect);
+
+  // Start rendering the AR view
+  renderer.xr.setSession(session);
+  session.requestAnimationFrame(onXRFrame);
 }
 
-animate();
+function onSelect() {
+  // Clone and place the helmet model at the reticle's position
+  if (helmetModel && reticle.visible) {
+    const clone = helmetModel.clone();
+    clone.position.copy(reticle.position);
+    scene.add(clone);
+  }
+}
 
-// Tap to place objects
-window.addEventListener('click', () => {
-    if (model && model.visible) {
-        const newModel = model.clone();
-        newModel.visible = true;
-        scene.add(newModel);
-        placedObjects.push(newModel);
+function onXRFrame(time, frame) {
+  const session = frame.session;
+  session.requestAnimationFrame(onXRFrame);
 
-        console.log('Object placed at:', newModel.position);
+  // Bind the framebuffer
+  const gl = renderer.getContext();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, session.renderState.baseLayer.framebuffer);
+
+  // Get viewer pose
+  const pose = frame.getViewerPose(referenceSpace);
+  if (pose) {
+    const view = pose.views[0];
+    const viewport = session.renderState.baseLayer.getViewport(view);
+    renderer.setSize(viewport.width, viewport.height);
+
+    camera.matrix.fromArray(view.transform.matrix);
+    camera.projectionMatrix.fromArray(view.projectionMatrix);
+    camera.updateMatrixWorld(true);
+
+    // Hit-test for reticle placement
+    const hitTestResults = frame.getHitTestResults(hitTestSource);
+    if (hitTestResults.length > 0) {
+      const hitPose = hitTestResults[0].getPose(referenceSpace);
+      reticle.visible = true;
+      reticle.position.set(hitPose.transform.position.x, hitPose.transform.position.y, hitPose.transform.position.z);
+      reticle.updateMatrixWorld(true);
+    } else {
+      reticle.visible = false;
     }
-});
 
-// Reset button functionality
-const resetButton = document.createElement('button');
-resetButton.innerText = 'Reset Scene';
-resetButton.style.position = 'absolute';
-resetButton.style.bottom = '20px';
-resetButton.style.left = '20px';
-resetButton.style.padding = '10px 20px';
-resetButton.style.backgroundColor = '#007BFF';
-resetButton.style.color = '#fff';
-resetButton.style.border = 'none';
-resetButton.style.borderRadius = '5px';
-resetButton.style.cursor = 'pointer';
-document.body.appendChild(resetButton);
-
-resetButton.addEventListener('click', () => {
-    placedObjects.forEach(obj => scene.remove(obj));
-    placedObjects.length = 0;
-    console.log('Scene reset!');
-});
+    // Render the scene
+    renderer.render(scene, camera);
+  }
+}
 
