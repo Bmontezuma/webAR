@@ -15,7 +15,7 @@ loader.load('./assets/model.glb', function (gltf) {
 
 // Add light
 const light = new THREE.DirectionalLight(0xffffff, 1);
-light.position.set(5, 5, 5).normalize();
+light.position.set(6, 5, 5).normalize();
 scene.add(light);
 
 // Render loop
