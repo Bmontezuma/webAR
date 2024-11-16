@@ -16,19 +16,22 @@ loader.load(
     './assets/neon_game_controller.glb',
     function (gltf) {
         model = gltf.scene;
-        scene.add(model);
         model.visible = false; // Hide the default model until placement
+        scene.add(model);
     },
     undefined,
     function (error) {
-        console.error('An error occurred while loading the model:', error);
+        console.error('An error occurred while loading the model:', error.message);
     }
 );
 
-// Add light to the scene
-const light = new THREE.DirectionalLight(0xffffff, 1);
-light.position.set(6, 5, 5).normalize();
-scene.add(light);
+// Add lights to the scene
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+directionalLight.position.set(6, 5, 5).normalize();
+scene.add(directionalLight);
+
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+scene.add(ambientLight);
 
 // Array to store placed objects
 const placedObjects = [];
@@ -67,8 +70,14 @@ function animate() {
                 // Update placement icon to follow hit-test results
                 if (model) {
                     model.visible = true;
-                    model.position.set(pose.transform.position.x, pose.transform.position.y, pose.transform.position.z);
+                    model.position.set(
+                        pose.transform.position.x,
+                        pose.transform.position.y,
+                        pose.transform.position.z
+                    );
                 }
+            } else if (model) {
+                model.visible = false; // Hide model if no hit-test results
             }
         }
 
@@ -82,10 +91,31 @@ animate();
 window.addEventListener('click', () => {
     if (model && model.visible) {
         const newModel = model.clone();
+        newModel.visible = true;
         scene.add(newModel);
         placedObjects.push(newModel);
 
         console.log('Object placed at:', newModel.position);
     }
+});
+
+// Reset button functionality
+const resetButton = document.createElement('button');
+resetButton.innerText = 'Reset Scene';
+resetButton.style.position = 'absolute';
+resetButton.style.bottom = '20px';
+resetButton.style.left = '20px';
+resetButton.style.padding = '10px 20px';
+resetButton.style.backgroundColor = '#007BFF';
+resetButton.style.color = '#fff';
+resetButton.style.border = 'none';
+resetButton.style.borderRadius = '5px';
+resetButton.style.cursor = 'pointer';
+document.body.appendChild(resetButton);
+
+resetButton.addEventListener('click', () => {
+    placedObjects.forEach(obj => scene.remove(obj));
+    placedObjects.length = 0;
+    console.log('Scene reset!');
 });
 
