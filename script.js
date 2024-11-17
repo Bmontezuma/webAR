@@ -54,16 +54,16 @@ async function activateXR() {
         scene.add(reticle);
     });
 
-    // Load your custom model "ImageToStl.com_bdtronic_logo_opt.glb"
+    // Load your custom model
     loader.load("./assets/itfigurinefbx.glb", (gltf) => {
-        model = gltf.scene; // Load the model into the global variable
+        model = gltf.scene;
         model.scale.set(1, 1, 1); // Adjust scale if necessary
         model.visible = false; // Initially hide the model
         scene.add(model);
 
-        console.log("Model loaded successfully: itfigurinefbx.glb");
+        console.log("Model loaded successfully:", model);
     }, undefined, (error) => {
-        console.error("itfigurinefbx.glb", error);
+        console.error("Error loading model: itfigurinefbx.glb", error);
     });
 
     session.addEventListener("select", onSelect);
@@ -74,13 +74,18 @@ async function activateXR() {
 }
 
 function onSelect() {
-    // Clone and place the model at the reticle's position
-    if (model && reticle.visible) {
-        const clone = model.clone(); // Clone the loaded model
-        clone.position.copy(reticle.position); // Set its position to the reticle
-        scene.add(clone); // Add it to the scene
+    console.log("onSelect triggered!");
 
-        console.log("Model placed at:", clone.position);
+    if (model && reticle.visible) {
+        console.log("Reticle visible, placing model at:", reticle.position);
+
+        const clone = model.clone();
+        clone.position.copy(reticle.position);
+        scene.add(clone);
+
+        console.log("Model placed successfully at:", clone.position);
+    } else {
+        console.log("Model not placed. Either reticle is not visible or model not loaded.");
     }
 }
 
@@ -110,8 +115,11 @@ function onXRFrame(time, frame) {
             reticle.visible = true;
             reticle.position.set(hitPose.transform.position.x, hitPose.transform.position.y, hitPose.transform.position.z);
             reticle.updateMatrixWorld(true);
+
+            console.log("Reticle visible at:", reticle.position);
         } else {
             reticle.visible = false;
+            console.log("No valid surface detected for reticle.");
         }
 
         // Render the scene
