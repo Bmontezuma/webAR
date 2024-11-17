@@ -29,13 +29,14 @@ async function activateXR() {
     directionalLight.position.set(5, 10, 7.5);
     scene.add(directionalLight);
 
-    // Add a test object for visibility debugging
+    // Add a debug cube for visibility testing
     const testCube = new THREE.Mesh(
         new THREE.BoxGeometry(0.1, 0.1, 0.1),
-        new THREE.MeshBasicMaterial({ color: 0xff0000 }) // Red color
+        new THREE.MeshBasicMaterial({ color: 0xff0000 }) // Red cube
     );
-    testCube.position.set(0, 0, -1); // In front of the camera
+    testCube.position.set(0, 0, -1); // Place in front of the camera
     scene.add(testCube);
+    console.log("Debug cube added at:", testCube.position);
 
     // Set up the camera
     camera = new THREE.PerspectiveCamera();
@@ -60,16 +61,22 @@ async function activateXR() {
         reticle = gltf.scene;
         reticle.visible = false;
         scene.add(reticle);
+        console.log("Reticle loaded and added to the scene.");
     });
 
     // Load your custom model
     loader.load("./assets/itfigurinefbx.glb", (gltf) => {
         model = gltf.scene;
-        model.scale.set(1, 1, 1); // Adjust scale if necessary
+        model.scale.set(0.5, 0.5, 0.5); // Adjust scale if necessary
         model.visible = false; // Initially hide the model
         scene.add(model);
 
         console.log("Model loaded successfully:", model);
+
+        // Add a bounding box helper for the model
+        const boxHelper = new THREE.BoxHelper(model, 0x00ff00); // Green bounding box
+        scene.add(boxHelper);
+        console.log("Bounding box helper added for model.");
     }, undefined, (error) => {
         console.error("Error loading model: itfigurinefbx.glb", error);
     });
