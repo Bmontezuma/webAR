@@ -55,15 +55,15 @@ async function activateXR() {
     });
 
     // Load your custom model "ImageToStl.com_bdtronic_logo_opt.glb"
-    loader.load("./assets/ImageToStl.com_bdtronic_logo_opt.glb", (gltf) => {
+    loader.load("./assets/itfigurinefbx.glb", (gltf) => {
         model = gltf.scene; // Load the model into the global variable
         model.scale.set(1, 1, 1); // Adjust scale if necessary
         model.visible = false; // Initially hide the model
         scene.add(model);
 
-        console.log("Model loaded successfully: ImageToStl.com_bdtronic_logo_opt.glb");
+        console.log("Model loaded successfully: itfigurinefbx.glb");
     }, undefined, (error) => {
-        console.error("ImageToStl.com_bdtronic_logo_opt.glb", error);
+        console.error("itfigurinefbx.glb", error);
     });
 
     session.addEventListener("select", onSelect);
