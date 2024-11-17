@@ -8,46 +8,18 @@
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
 
-  <!-- three.js -->
-  <script src="https://unpkg.com/three@0.126.0/build/three.js"></script>
-  <script src="https://unpkg.com/three@0.126.0/examples/js/loaders/GLTFLoader.js"></script>
-
   <!-- Custom Styles -->
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Creepster', cursive;
-      background-color: #000;
-      color: #fff;
-      text-align: center;
-    }
-
-    #startButton {
-      position: absolute;
-      top: 20%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      padding: 15px 30px;
-      font-size: 24px;
-      color: #fff;
-      background-color: #007BFF;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: transform 0.2s;
-    }
-
-    #startButton:hover {
-      transform: scale(1.1);
-    }
-
-    canvas {
-      display: block;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <header>
+    <h1>WebAR Experience</h1>
+    <p>Explore augmented reality in your browser!</p>
+  </header>
   <button id="startButton">Start AR Experience</button>
+  <footer>
+    <p>© 2024 WebAR Demo</p>
+  </footer>
   <script type="module" src="script.js"></script>
 </body>
 </html>

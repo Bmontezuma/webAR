@@ -62,6 +62,8 @@ async function activateXR() {
         scene.add(model);
 
         console.log("Model loaded successfully: OJO p GLB.glb");
+    }, undefined, (error) => {
+        console.error("Error loading model: OJO p GLB.glb", error);
     });
 
     session.addEventListener("select", onSelect);
