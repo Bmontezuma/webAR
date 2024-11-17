@@ -29,6 +29,14 @@ async function activateXR() {
     directionalLight.position.set(5, 10, 7.5);
     scene.add(directionalLight);
 
+    // Add a test object for visibility debugging
+    const testCube = new THREE.Mesh(
+        new THREE.BoxGeometry(0.1, 0.1, 0.1),
+        new THREE.MeshBasicMaterial({ color: 0xff0000 }) // Red color
+    );
+    testCube.position.set(0, 0, -1); // In front of the camera
+    scene.add(testCube);
+
     // Set up the camera
     camera = new THREE.PerspectiveCamera();
     camera.matrixAutoUpdate = false;
