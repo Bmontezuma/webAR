@@ -51,7 +51,7 @@ async function activateXR() {
     // Model
     loader.load("./assets/itfigurinefbx.glb", (gltf) => {
         model = gltf.scene;
-        model.scale.set(0.5, 0.5, 0.5);
+        model.scale.set(2, 2, 2);
         model.visible = false;
         scene.add(model);
 
