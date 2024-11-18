@@ -93,9 +93,9 @@ Write a blog post to reflect on your journey and share your insights.
 |------------------------|-------------------------------------------|-------------------------------------------------|
 | **WebXR Tutorial**     | GitHub Repository                        | [https://github.com/Bmontezuma/webAR](#)       |
 |                        | Live Project                             | [https://bmontezuma.github.io/webAR/](#)       |
-| **Business Card**      | GitHub Repository                        | [Add Your Link](#)                              |
-|                        | QR Code                                  | [Add Your QR Code Link](#)                     |
-| **Blog Post**          | Published Blog Post                      | [Add Your Blog Link](#)                         |
+| **Business Card**      | GitHub Repository                        | [](#)                              |
+|                        | QR Code                                  | [](#)                     |
+| **Blog Post**          | Published Blog Post                      | [](#)                         |
 
 ---
 
