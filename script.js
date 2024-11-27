@@ -33,9 +33,14 @@ async function activateXR() {
     const session = await navigator.xr.requestSession("immersive-ar", { requiredFeatures: ["hit-test"] });
     session.updateRenderState({ baseLayer: new XRWebGLLayer(session, gl) });
 
-    referenceSpace = await session.requestReferenceSpace("local").catch(() =>
-        session.requestReferenceSpace("viewer")
-    );
+    // Updated reference space request
+    try {
+        referenceSpace = await session.requestReferenceSpace("local");
+    } catch (err) {
+        console.warn("Local reference space not supported, falling back to viewer");
+        referenceSpace = await session.requestReferenceSpace("viewer");
+    }
+
     const viewerSpace = await session.requestReferenceSpace("viewer");
 
     hitTestSource = await session.requestHitTestSource({ space: viewerSpace });
@@ -78,6 +83,8 @@ function onSelect() {
 
 function onXRFrame(time, frame) {
     const session = frame.session;
+    if (!session) return; // Ensure session is available before proceeding
+
     session.requestAnimationFrame(onXRFrame);
 
     const gl = renderer.getContext();
@@ -106,4 +113,3 @@ function onXRFrame(time, frame) {
         renderer.render(scene, camera);
     }
 }
-
